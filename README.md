@@ -10,6 +10,8 @@ adaptive engine that decides what you should do next.
 
 No accounts. No network. No npm install.
 
+**[Open the live app →](https://jee-abhijay-nagals-projects.vercel.app)**
+
 [![CI](https://github.com/Abhijay-Nagal/JEE/actions/workflows/ci.yml/badge.svg)](https://github.com/Abhijay-Nagal/JEE/actions/workflows/ci.yml)
 
 Install it from the browser's address bar and it keeps working with the network
@@ -81,7 +83,8 @@ and how to add a chapter: **[CLAUDE.md](CLAUDE.md)**.
 
 ## Deployment
 
-Hosted on **Vercel**, which builds from this repository on every push. Its
+Live at **[jee-abhijay-nagals-projects.vercel.app](https://jee-abhijay-nagals-projects.vercel.app)**, hosted on **Vercel**, which
+builds from this repository on every push. Its
 configuration lives in [`vercel.json`](vercel.json) rather than in a dashboard,
 so the deploy is reproducible from the repo alone:
 

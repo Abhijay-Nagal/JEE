@@ -511,6 +511,8 @@ never contain learning logic. Engines publish facts on the event bus
 
 ## 12. Deployment
 
+Live at **https://jee-abhijay-nagals-projects.vercel.app**.
+
 Hosted on **Vercel**. The deployed site is `public/`, served as-is: nothing is
 compiled or bundled, and `server.js` is never deployed - it exists only because
 browsers block ES modules and service workers on `file://`.
