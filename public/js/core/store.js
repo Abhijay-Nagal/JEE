@@ -165,6 +165,10 @@ export function save({ immediate = false } = {}) {
       try { localStorage.setItem(KEY, JSON.stringify(state)); }
       catch { emit(EV.TOAST, { kind: 'bad', text: 'Could not save progress - storage is full.' }); }
     }
+    // Cloud sync listens for this to schedule a debounced push. A DOM event
+    // rather than a bus event so store.js keeps no dependency on sync.js -
+    // the app must run identically with sync switched off.
+    try { window.dispatchEvent(new Event('jee:saved')); } catch { /* not a browser */ }
   };
   if (immediate) doWrite();
   else saveTimer = setTimeout(doWrite, 400);
@@ -189,6 +193,19 @@ export function resetAll() {
   state = blankState();
   save({ immediate: true });
   emit(EV.STATE, { state, payload: { reset: true } });
+}
+
+/**
+ * Adopt a state produced elsewhere - currently the result of merging this
+ * device's save with one pulled from the cloud. Kept separate from importJSON
+ * because there is no file, no backup prompt and no user gesture involved.
+ */
+export function replaceState(next) {
+  if (!next || typeof next !== 'object') return state;
+  state = migrate(next);
+  save({ immediate: true });
+  emit(EV.STATE, { state, payload: { merged: true } });
+  return state;
 }
 
 /* ------------------------------------------------------------------ */

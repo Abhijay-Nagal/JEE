@@ -16,9 +16,10 @@
     "validate": "node tools/validate-content.js",
     "smoke": "node tools/smoke-test.js",
     "ui": "node tools/ui-test.mjs",
+    "sync": "node tools/sync-test.mjs",
     "test": "npm run check && npm run validate && npm run smoke",
     "verify": "npm run test && npm run sw:check",
-    "test:all": "npm run check && npm run validate && npm run smoke && npm run ui"
+    "test:all": "npm run verify && npm run ui && npm run sync"
   },
   "keywords": [
     "jee",

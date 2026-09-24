@@ -465,6 +465,99 @@ console.log('  ✓ grading      every one of the ' + STATS.questions + ' answer 
 console.log('  ✓ persistence  export, import and a v1 → v3 migration all round-trip');
 
 /* ================================================================== */
+/* merge - reconciling two devices                                     */
+/* ================================================================== */
+
+{
+  const { mergeState } = await import('../public/js/core/merge.js');
+  const base = () => Store.blankState();
+
+  // A laptop and a phone that have each done real, different work.
+  const laptop = base();
+  laptop.updatedAt = 2000;
+  laptop.xp = 500; laptop.coins = 40;
+  laptop.streak = { count: 3, best: 9, lastDay: '2026-01-02', freezes: 1 };
+  laptop.kc['kc-a'] = { p: 0.8, a: 10, c: 8, elo: 1300, seen: 10, reps: 4, ease: 2.5, ivl: 6, due: 99, lapses: 0, lastAt: 1900 };
+  laptop.topics['t-1'] = { read: true, readAt: 1500, gamePlays: 3, gameBest: 80,
+    gmh: { G: { a: 5, c: 5 }, M: { a: 2, c: 1 }, H: { a: 0, c: 0 } }, done: false, doneAt: 0, notes: '' };
+  laptop.achievements['first-topic'] = 1500;
+  laptop.days['2026-01-02'] = { min: 20, xp: 100, q: 10, correct: 8, sessions: 1 };
+  laptop.log = [{ t: 100, kind: 'answer', id: 'q1' }, { t: 200, kind: 'answer', id: 'q2' }];
+  laptop.ability.physics = { theta: 0.4, se: 0.5, n: 30 };
+  laptop.settings.motion = 'reduced';
+
+  const phone = base();
+  phone.updatedAt = 3000;                     // the phone is newer
+  phone.xp = 300; phone.coins = 90;
+  phone.streak = { count: 5, best: 5, lastDay: '2026-01-04', freezes: 0 };
+  phone.kc['kc-a'] = { p: 0.4, a: 3, c: 1, elo: 1210, seen: 3, reps: 1, ease: 2.5, ivl: 1, due: 50, lapses: 1, lastAt: 2900 };
+  phone.kc['kc-b'] = { p: 0.6, a: 4, c: 3, elo: 1250, seen: 4, reps: 2, ease: 2.5, ivl: 3, due: 60, lapses: 0, lastAt: 2900 };
+  phone.topics['t-1'] = { read: false, readAt: 0, gamePlays: 1, gameBest: 95,
+    gmh: { G: { a: 2, c: 2 }, M: { a: 6, c: 4 }, H: { a: 1, c: 1 } }, done: true, doneAt: 2800, notes: 'revise' };
+  phone.achievements['first-topic'] = 2600;   // later than the laptop's
+  phone.days['2026-01-02'] = { min: 15, xp: 120, q: 8, correct: 7, sessions: 2 };
+  phone.log = [{ t: 200, kind: 'answer', id: 'q2' }, { t: 300, kind: 'answer', id: 'q3' }];
+  phone.ability.physics = { theta: -0.1, se: 0.8, n: 5 };
+  phone.settings.motion = 'full';
+
+  const m = mergeState(laptop, phone);
+
+  ok(m.xp === 500, 'Merge: XP takes the larger, never the newer', String(m.xp));
+  ok(m.coins === 90, 'Merge: coins take the larger', String(m.coins));
+  ok(m.streak.count === 5, 'Merge: streak count follows the device that studied last');
+  ok(m.streak.best === 9, 'Merge: best streak is a record and survives', String(m.streak.best));
+
+  ok(m.kc['kc-a'].seen === 10, 'Merge: the KC with more evidence wins whole');
+  ok(m.kc['kc-a'].due === 99, 'Merge: SRS fields are not interleaved between devices');
+  ok(m.kc['kc-b'], 'Merge: a KC only the phone has is kept');
+
+  ok(m.topics['t-1'].read === true, 'Merge: read stays read');
+  ok(m.topics['t-1'].done === true, 'Merge: done stays done');
+  ok(m.topics['t-1'].gameBest === 95, 'Merge: best score takes the larger');
+  ok(m.topics['t-1'].gmh.M.a === 6, 'Merge: per-tier attempt counts take the larger');
+  ok(m.topics['t-1'].notes === 'revise', 'Merge: a note is not lost to an empty one');
+
+  ok(m.achievements['first-topic'] === 1500, 'Merge: an achievement keeps its first unlock time');
+  ok(m.days['2026-01-02'].min === 20 && m.days['2026-01-02'].xp === 120,
+    'Merge: per-day stats take the larger field, so re-syncing cannot inflate them');
+  ok(m.log.length === 3, 'Merge: logs union and de-duplicate', String(m.log.length));
+  ok(m.ability.physics.n === 30, 'Merge: the ability estimate with more answers behind it wins');
+  ok(m.settings.motion === 'reduced', 'Merge: settings stay local to the device');
+
+  // Idempotence: syncing twice must not drift.
+  const twice = mergeState(laptop, mergeState(laptop, phone));
+  ok(JSON.stringify(twice) === JSON.stringify(m), 'Merge: is idempotent');
+
+  // Order independence for the value-bearing fields.
+  const flipped = mergeState(phone, laptop);
+  ok(flipped.xp === m.xp && flipped.kc['kc-a'].seen === m.kc['kc-a'].seen
+    && flipped.topics['t-1'].done === m.topics['t-1'].done && flipped.log.length === m.log.length,
+    'Merge: progress does not depend on which side is called local');
+
+  // A device that signed in but was never onboarded has an empty name. That
+  // blank must not erase the name set on the other device.
+  const named = base(); named.updatedAt = 1000;
+  named.profile.name = 'Cadet'; named.profile.avatar = 'TELESCOPE';
+  const blankP = base(); blankP.updatedAt = 9000;          // newer, but knows nothing
+  blankP.profile.avatar = '';                              // never chosen on this device
+  const kept = mergeState(named, blankP);
+  ok(kept.profile.name === 'Cadet', 'Merge: a newer but empty profile does not blank the name', kept.profile.name);
+  ok(kept.profile.avatar === 'TELESCOPE', 'Merge: nor an unset avatar', kept.profile.avatar);
+  // A default the learner never touched is still a value, so it legitimately wins.
+  ok(mergeState(named, base()).profile.name === 'Cadet', 'Merge: defaults do not erase a set name');
+  const renamed = base(); renamed.updatedAt = 9000; renamed.profile.name = 'Abhijay';
+  ok(mergeState(named, renamed).profile.name === 'Abhijay', 'Merge: but a real rename does win');
+
+  // The degenerate cases a first sync actually hits.
+  ok(mergeState(laptop, null) === laptop, 'Merge: no remote yet returns the local save');
+  ok(mergeState(null, phone) === phone, 'Merge: no local save returns the remote');
+  const fresh = mergeState(base(), phone);
+  ok(fresh.xp === 300 && fresh.kc['kc-b'], 'Merge: a brand new device adopts the remote save');
+}
+
+console.log('  ✓ merge        two devices reconcile without losing progress');
+
+/* ================================================================== */
 
 console.log('  ' + '─'.repeat(56));
 if (notes.length) {

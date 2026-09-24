@@ -9,6 +9,9 @@ import { setView, setCrumbs, applySettings, refreshStats } from '../shell.js';
 import { sfx, setVolume } from '../../core/audio.js';
 import { STATS, STORY } from '../../../data/registry.js';
 import { modal, confirm, toast } from '../components/overlays.js';
+import { syncConfigured } from '../../core/config.js';
+import { sendMagicLink, signOut, isSignedIn, currentEmail, onAuthChange } from '../../core/auth.js';
+import { syncNow, getStatus, onSyncChange } from '../../core/sync.js';
 
 /* ================================================================== */
 /* settings                                                            */
@@ -21,11 +24,13 @@ export function settingsView() {
   const page = h('div', null,
     h('div.page-head', null,
       h('h1', null, 'Settings'),
-      h('p.page-head__sub', null, 'Everything is stored on this device only. Nothing is uploaded anywhere.')),
+      h('p.page-head__sub', null, syncConfigured()
+        ? 'Your progress lives on this device. Sign in to back it up and carry it to another one.'
+        : 'Everything is stored on this device only. Nothing is uploaded anywhere.')),
 
     h('div.grid.grid--2', null,
       h('div', null, profileCard(s), appearanceCard(s)),
-      h('div', null, studyCard(s), dataCard(), aboutCard())
+      h('div', null, studyCard(s), accountCard(), dataCard(), aboutCard())
     )
   );
 
@@ -138,6 +143,108 @@ function studyCard(s) {
         h('span.stat-chip', null, '🧊 ', String(s.streak.freezes)),
         h('span.small.muted', null, 'One is earned every 7 days, up to 3. A freeze covers a single missed day automatically.')))
   );
+}
+
+/**
+ * Sign-in and sync. Rendered only when this deployment has been configured
+ * with a Supabase project - otherwise the app has no account concept at all
+ * and pretending it does would be a lie in the UI.
+ */
+function accountCard() {
+  if (!syncConfigured()) return null;
+
+  const body = h('div');
+  const rebuild = () => { clear(body); body.appendChild(isSignedIn() ? signedIn() : signedOut()); };
+
+  /* ---- signed out: ask for an email, send a one-time link ---- */
+  function signedOut() {
+    const input = h('input.input', {
+      type: 'email', placeholder: 'you@example.com', autocomplete: 'email',
+      onKeyDown: (e) => { if (e.key === 'Enter') send(); }
+    });
+    const btn = h('button.btn.btn--primary', { onClick: () => send() }, 'Email me a link');
+
+    async function send() {
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+      try {
+        await sendMagicLink(input.value);
+        clear(body);
+        body.appendChild(h('div.callout.callout--tip', null,
+          h('div.callout__label', null, '✓ Check your inbox'),
+          h('div.small', null,
+            `A one-time sign-in link is on its way to ${input.value.trim()}. `
+            + 'Open it on this device — the link is tied to this browser. It expires in an hour.')));
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Email me a link';
+        toast({ kind: 'bad', text: err.message });
+      }
+    }
+
+    return h('div', null,
+      h('p.small.muted', { style: { marginTop: 0 } },
+        'Sign in to back your progress up and pick it up on another device. '
+        + 'No password — you get a one-time link by email. '
+        + 'The app keeps working offline and without an account either way.'),
+      h('div.row', { style: { gap: 'var(--sp-2)', alignItems: 'center', flexWrap: 'wrap' } }, input, btn)
+    );
+  }
+
+  /* ---- signed in: show who, and how the last sync went ---- */
+  function signedIn() {
+    const LABEL = {
+      idle: ['·', 'Ready'],
+      syncing: ['⟳', 'Syncing…'],
+      synced: ['✓', 'Backed up'],
+      offline: ['⚠', 'Offline — saving locally'],
+      error: ['⚠', 'Sync problem'],
+      off: ['·', 'Not syncing']
+    };
+    const line = h('span.small');
+    const paint = () => {
+      const { status, error } = getStatus();
+      const [icon, text] = LABEL[status] || LABEL.idle;
+      line.textContent = `${icon}  ${text}`;
+      line.title = error || '';
+      line.dataset.tone = status === 'error' || status === 'offline' ? 'bad' : status === 'synced' ? 'ok' : '';
+    };
+    paint();
+    onSyncChange(paint);
+
+    return h('div', null,
+      h('p.small', { style: { marginTop: 0 } },
+        'Signed in as ', h('strong', null, currentEmail() || 'your account')),
+      h('div.row', { style: { gap: 'var(--sp-2)', alignItems: 'center', margin: 'var(--sp-2) 0' } }, line),
+      h('p.small.muted', null,
+        'Progress syncs automatically. If you study on another device, whichever '
+        + 'save has done more of a given topic wins — nothing is overwritten wholesale.'),
+      h('div.btnbar', null,
+        h('button.btn', {
+          onClick: async (e) => {
+            e.target.disabled = true;
+            const okd = await syncNow();
+            e.target.disabled = false;
+            toast(okd ? { kind: 'ok', text: 'Progress synced.' }
+                      : { kind: 'bad', text: getStatus().error || 'Could not sync right now.' });
+          }
+        }, '⟳ Sync now'),
+        h('button.btn.btn--ghost', {
+          onClick: async () => {
+            const yes = await confirm({
+              title: 'Sign out?',
+              body: 'Your progress stays on this device. Sign back in any time to keep syncing.',
+              confirmLabel: 'Sign out'
+            });
+            if (yes) { await signOut(); toast({ kind: 'ok', text: 'Signed out.' }); }
+          }
+        }, 'Sign out'))
+    );
+  }
+
+  rebuild();
+  onAuthChange(rebuild);
+  return card('Account & sync', body);
 }
 
 function dataCard() {

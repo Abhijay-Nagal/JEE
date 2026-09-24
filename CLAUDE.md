@@ -26,7 +26,8 @@ everything else.
 | Which chapters | Units 1 and 2 of each subject: Physics *Units & Measurements* + *Kinematics*; Chemistry *Some Basic Concepts* + *Atomic Structure*; Maths *Sets, Relations & Functions* + *Complex Numbers & Quadratic Equations* | Building the syllabus in order, and in parallel across the three subjects, so no subject runs ahead of the others. |
 | Storyline | *The Aryabhata Protocol* | A frame that motivates revisiting foundations without being childish: a research station's archives are wiped and must be rebuilt from understanding. Each subject has a guide character; each chapter ends in a boss. |
 | Personalisation | Six models, not one | A single "difficulty score" cannot answer both "do they know this?" and "what should they see next?". See §4. |
-| Data | `localStorage` only | No account to create, no privacy surface, works on a plane. Export/import is one click. |
+| Data | `localStorage` is the source of truth | No account to create, no privacy surface, works on a plane. Export/import is one click. |
+| Accounts | **Optional** sign-in layered on top, never a gate | Progress following you to a second device is a real need, but making it a requirement would cost offline use and add a privacy surface for every learner who does not want it. So the cloud is a mirror: signed out, offline, or Supabase down, the app is unchanged. See §14. |
 
 ---
 
@@ -564,7 +565,55 @@ with nothing hardcoded.
 
 ---
 
-## 13. Honest limitations
+## 13. Accounts and sync
+
+Optional, off by default, and deliberately not a gate. `localStorage` remains
+the source of truth; the cloud is a mirror.
+
+**Sign-in** (`core/auth.js`) is passwordless email links against Supabase's
+GoTrue API, spoken to over plain `fetch` so the zero-dependency rule survives.
+No password is collected, stored or transmitted.
+
+It uses **PKCE rather than the implicit flow**, for a reason specific to this
+app: implicit returns tokens in the URL *fragment*, and this is a hash-routed
+app - `#access_token=...` would be handed straight to the router as a route.
+PKCE returns `?code=` in the query string, which the router never reads. The
+code is exchanged and stripped from the address bar before anything else runs.
+
+**Merging** (`core/merge.js`) is where the real work is. Last-write-wins would
+silently delete a revision session, so no field is ever overwritten wholesale:
+
+| Kind of field | Rule | Example |
+|---|---|---|
+| Monotonic counters | take the larger | XP, best streak, boss wins |
+| Evidence-bearing records | take the richer, whole | a KC's BKT + SRS state |
+| Progress booleans | OR together | `read`, `done` |
+| Time-sensitive state | take the newer | today's quests, current streak |
+| Append-only logs | union, de-duplicate, re-cap | the event log |
+| Per-day stats | larger of each field | so re-syncing cannot inflate them |
+
+A KC record is taken *whole* rather than field-by-field: its mastery
+probability and its SRS schedule are internally consistent, and interleaving
+two devices' versions would produce a state neither device ever had.
+
+`settings` is **not** synced. Theme, motion and font scale belong to a device,
+not a person.
+
+**Testing.** `npm test` covers the merge in isolation, including that it is
+idempotent and that the result does not depend on which side is called local.
+`npm run sync` is an integration test: it stands up a fake Supabase that speaks
+GoTrue and PostgREST, signs in through the real PKCE flow, and drives two
+separate browser contexts to prove work done on each survives the other's sync.
+That test found a real bug - an un-onboarded device's empty `profile.name`
+was blanking the name set on the other device, because an unset field is
+absence of information, not an edit.
+
+Setup is in `docs/SYNC.md`. The anon key is meant to be public; row-level
+security in Postgres is what protects the data.
+
+---
+
+## 14. Honest limitations
 
 - **Two chapters per subject.** 6 of roughly 54 JEE chapters. The roadmap
   screens show what is missing rather than hiding it.

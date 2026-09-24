@@ -57,5 +57,7 @@ export const EV = {
   BOSS_WIN: 'boss:defeated',
   ROUTE: 'route:changed',
   TOAST: 'ui:toast',
-  SESSION_END: 'session:ended'
+  SESSION_END: 'session:ended',
+  SYNC_APPLIED: 'sync:applied',
+  SYNC_STATUS: 'sync:status'
 };

@@ -7,9 +7,11 @@
  */
 
 import { load, get, update, logDay, touchStreak } from './core/store.js';
-import { on, EV } from './core/bus.js';
+import { on, emit, EV } from './core/bus.js';
 import { installUnlockHandlers } from './core/audio.js';
 import { register, setNotFound, start as startRouter, go } from './core/router.js';
+import { loadSession, completeSignIn } from './core/auth.js';
+import { installSync } from './core/sync.js';
 
 import { CHAPTERS } from '../data/registry.js';
 import { buildGraph } from './engine/knowledgeGraph.js';
@@ -34,12 +36,29 @@ import { settingsView, maybeOnboard } from './ui/views/settings.js';
 const state = load();
 applySettings();
 
+/* ---- optional cloud sync ----------------------------------------- */
+// Deliberately non-blocking. The app is offline-first: it must finish booting
+// and be usable whether or not there is a network, an account, or a Supabase
+// project configured at all. Nothing below gates the UI.
+loadSession();
+completeSignIn()
+  .then((signedIn) => {
+    if (signedIn) emitToast('Signed in. Syncing your progress…');
+  })
+  .catch((err) => emitToast('Sign-in link failed: ' + err.message, 'bad'))
+  .finally(() => installSync());
+
 const graph = buildGraph(CHAPTERS);
 
 buildShell(graph);
 installToasts();
 installQuestTracking();
 installUnlockHandlers();
+
+function emitToast(text, kind = 'ok') {
+  // The shell may not be up yet on the very first tick, so defer a frame.
+  setTimeout(() => emit(EV.TOAST, { kind, text }), 0);
+}
 
 /* ---- routes ---------------------------------------------------- */
 

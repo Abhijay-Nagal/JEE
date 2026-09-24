@@ -8,7 +8,8 @@ Chapters 1 and 2 of Physics, Chemistry and Mathematics, built end to end:
 animations, 378 questions with full worked solutions, six boss battles, and an
 adaptive engine that decides what you should do next.
 
-No accounts. No network. No npm install.
+No npm install. No build step. Works offline. An account is **optional** —
+sign in only if you want your progress to follow you to another device.
 
 **[Open the live app →](https://jee-abhijay-nagals-projects.vercel.app)**
 
@@ -46,7 +47,8 @@ On Windows you can double-click **`start.bat`** instead.
 | **Adaptive engine** | Bayesian Knowledge Tracing, Item Response Theory, Elo, SM-2 spaced repetition, a Thompson-sampling bandit, and a 135-node prerequisite graph |
 | **Gamified** | XP, 15 ranks, streaks with freezes, daily missions, 31 achievements, six bosses |
 | **Printable** | Formula sheets, lesson notes, question papers with an OMR grid, answer keys, and a worksheet generated from your own mistakes |
-| **Offline** | Installable PWA, 121 files precached |
+| **Offline** | Installable PWA, 125 files precached |
+| **Optional sync** | Passwordless email sign-in. Progress is merged across devices field by field, never overwritten. Off unless you configure it — see [docs/SYNC.md](docs/SYNC.md) |
 
 ---
 
@@ -65,7 +67,8 @@ On Windows you can double-click **`start.bat`** instead.
 ## Development
 
 ```bash
-npm test        # syntax + content validation + 5,521 engine checks
+npm test        # syntax + content validation + 5,547 engine checks
+npm run sync    # sign-in and cross-device merge, against a stand-in Supabase
 npm run ui      # drives the real app in Chromium (needs Playwright)
 npm run build   # regenerate icons and the offline precache list
 ```
