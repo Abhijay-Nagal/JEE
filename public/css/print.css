@@ -1,0 +1,143 @@
+/* ============================================================
+   JEE ASCENT - print layer
+   Two jobs:
+   1. Make ANY view print sanely (chrome stripped, ink-safe colours).
+   2. Render the Print Pack (formula sheet / notes / question paper /
+      answer key / OMR sheet) as proper A4 paper.
+   ============================================================ */
+
+/* ---- on-screen preview of the printable sheet ---- */
+.paper {
+  background: #fff; color: #111;
+  width: 210mm; max-width: 100%;
+  min-height: 297mm;
+  margin: 0 auto var(--sp-5);
+  padding: 16mm 15mm 18mm;
+  box-shadow: var(--shadow-3);
+  border-radius: 2px;
+  font-family: var(--font-serif);
+  font-size: 10.5pt; line-height: 1.5;
+}
+.paper * { color: inherit; }
+.paper h1, .paper h2, .paper h3, .paper h4 { color: #0b1020; font-family: var(--font-ui); }
+.paper h1 { font-size: 17pt; margin-bottom: 2mm; }
+.paper h2 { font-size: 13pt; margin: 7mm 0 2.5mm; border-bottom: 1pt solid #111; padding-bottom: 1.2mm; }
+.paper h3 { font-size: 11pt; margin: 5mm 0 2mm; }
+.paper p, .paper li { color: #1a1a1a; }
+.paper .math { color: #0b1020; }
+.paper a { color: #111; text-decoration: none; }
+.paper hr { border-top: 1px solid #bbb; }
+
+.paper__head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 8mm; border-bottom: 2pt solid #111; padding-bottom: 3mm; margin-bottom: 5mm;
+}
+.paper__brand { font-family: var(--font-ui); font-weight: 900; letter-spacing: -.02em; font-size: 12pt; }
+.paper__brand small { display: block; font-weight: 600; font-size: 7.5pt; letter-spacing: .18em; text-transform: uppercase; color: #555; }
+.paper__meta { font-family: var(--font-ui); font-size: 8pt; color: #444; text-align: right; line-height: 1.5; }
+
+.paper__fields { display: flex; gap: 6mm; flex-wrap: wrap; font-family: var(--font-ui); font-size: 9pt; margin-bottom: 5mm; }
+.paper__fields span { flex: 1; min-width: 45mm; border-bottom: .6pt solid #777; padding-bottom: 1mm; }
+
+.paper .formula-sheet { column-count: 2; column-gap: 9mm; }
+.paper .formula-sheet .fs-item { break-inside: avoid; margin-bottom: 3.6mm; }
+.paper .formula-sheet .fs-name { font-family: var(--font-ui); font-size: 8pt; font-weight: 700; color: #333; text-transform: uppercase; letter-spacing: .05em; }
+.paper .formula-sheet .fs-eq { font-size: 11pt; margin: .6mm 0; }
+.paper .formula-sheet .fs-note { font-size: 8pt; color: #555; }
+
+.paper .q { break-inside: avoid; margin-bottom: 5mm; display: flex; gap: 3mm; }
+.paper .q__n { font-family: var(--font-ui); font-weight: 700; min-width: 7mm; }
+.paper .q__body { flex: 1; }
+.paper .q__opts { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2mm 5mm; margin-top: 1.8mm; }
+.paper .q__opt { font-size: 10pt; }
+.paper .q__opt b { font-family: var(--font-ui); margin-right: 1.5mm; }
+.paper .q__work { border: .5pt dashed #999; border-radius: 1.5mm; height: 18mm; margin-top: 2mm; }
+.paper .q__tier { font-family: var(--font-ui); font-size: 7pt; font-weight: 700; letter-spacing: .1em; color: #666; border: .5pt solid #999; border-radius: 6px; padding: 0 1.4mm; margin-left: 2mm; }
+
+.paper .keytable { width: 100%; border-collapse: collapse; font-family: var(--font-ui); font-size: 9pt; }
+.paper .keytable th, .paper .keytable td { border: .5pt solid #999; padding: 1.4mm 2mm; text-align: center; }
+.paper .keytable th { background: #eee; font-size: 8pt; text-transform: uppercase; letter-spacing: .06em; }
+
+.paper .omr { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2mm 4mm; font-family: var(--font-ui); font-size: 8.5pt; }
+.paper .omr__row { display: flex; align-items: center; gap: 1.4mm; }
+.paper .omr__row b { min-width: 6mm; text-align: right; }
+.paper .omr__b { width: 4.2mm; height: 4.2mm; border: .6pt solid #333; border-radius: 50%; display: inline-grid; place-items: center; font-size: 6pt; color: #666; }
+
+.paper .notes-lines { background-image: repeating-linear-gradient(transparent, transparent 7.6mm, #ddd 7.6mm, #ddd 7.9mm); height: 60mm; }
+
+.paper__foot {
+  margin-top: 8mm; padding-top: 2.5mm; border-top: .5pt solid #999;
+  font-family: var(--font-ui); font-size: 7.5pt; color: #555;
+  display: flex; justify-content: space-between;
+}
+
+.pagebreak { break-after: page; }
+
+/* ============================ @media print ============================ */
+@page {
+  size: A4;
+  margin: 14mm 13mm 15mm;
+}
+
+@media print {
+  :root { --font-scale: 1; }
+
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 10.5pt;
+  }
+  body::before, body::after { display: none !important; }
+
+  /* Strip all app chrome. */
+  .rail, .topbar, .mobilenav, .toasts, #fx-layer, .modal-backdrop,
+  .no-print, .btn, .btnbar, .arcade__foot, .seg, .switch,
+  .arcade__overlay, .skip-link { display: none !important; }
+
+  .app { display: block !important; }
+  .main { display: block !important; }
+  .view { max-width: none !important; padding: 0 !important; margin: 0 !important; }
+
+  /* The paper preview becomes the page itself. */
+  .paper {
+    width: auto; min-height: 0; margin: 0; padding: 0;
+    box-shadow: none; border-radius: 0;
+  }
+
+  .card, .callout, .formula, .worked, .arcade {
+    border: .5pt solid #999 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+  .callout { border-left: 2.5pt solid #333 !important; }
+  .callout__label, .formula__name, .worked__head { color: #000 !important; background: #f2f2f2 !important; }
+
+  a { color: #000 !important; text-decoration: none !important; }
+  /* Expose destinations of real links, but not internal hash routes. */
+  .lesson a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 7.5pt; color: #555; }
+
+  h1, h2, h3, h4 { break-after: avoid; color: #000 !important; }
+  p, li, blockquote, .math-block { orphans: 3; widows: 3; }
+  img, canvas, svg, .arcade, table, .q, .fs-item, .worked { break-inside: avoid; }
+
+  .grid, .grid--2, .grid--3, .grid--4, .grid--auto, .grid--sidebar {
+    display: block !important;
+  }
+  .grid > *, .grid--auto > * { margin-bottom: 4mm; }
+
+  /* Canvas games cannot print usefully - replace with a note. */
+  .arcade__stage { display: none !important; }
+  .arcade::after {
+    content: "Interactive simulation - open this topic in the app to run it.";
+    display: block; padding: 4mm; font-size: 8.5pt; font-style: italic; color: #555;
+  }
+
+  .bar, .ring, .pips, .heatmap { filter: grayscale(1); }
+  .tag { border: .5pt solid #666 !important; background: #fff !important; color: #000 !important; }
+
+  .pagebreak { break-after: page; }
+  .print-only { display: revert !important; }
+}
+
+.print-only { display: none; }

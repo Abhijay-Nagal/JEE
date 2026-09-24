@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JEE ASCENT — The Aryabhata Protocol</title>
+<meta name="description" content="An offline-first, gamified, adaptive JEE preparation platform. Physics, Chemistry and Mathematics Chapters 1 and 2, with 40 interactive simulations, 22 concept animations and a full GMH question ladder.">
+<meta name="theme-color" content="#070b16">
+<meta name="color-scheme" content="dark light">
+
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="JEE ASCENT">
+<meta name="mobile-web-app-capable" content="yes">
+
+<link rel="stylesheet" href="./css/base.css">
+<link rel="stylesheet" href="./css/layout.css">
+<link rel="stylesheet" href="./css/components.css">
+<link rel="stylesheet" href="./css/game.css">
+<link rel="stylesheet" href="./css/print.css">
+
+<script>
+  // Apply the saved theme before first paint so there is no light flash.
+  try {
+    var saved = JSON.parse(localStorage.getItem('jee-ascent:v1') || '{}');
+    var t = (saved.settings && saved.settings.theme) || 'dark';
+    if (t === 'auto') t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    document.documentElement.dataset.theme = t;
+    if (saved.settings && saved.settings.contrast) document.documentElement.dataset.contrast = saved.settings.contrast;
+    if (saved.settings && saved.settings.fontScale) document.documentElement.style.setProperty('--font-scale', saved.settings.fontScale);
+    document.querySelector('meta[name="theme-color"]').content = t === 'light' ? '#f4f6fb' : '#070b16';
+  } catch (e) { /* first run, or storage blocked */ }
+</script>
+</head>
+<body>
+
+<noscript>
+  <div style="max-width:640px;margin:16vh auto;padding:24px;font-family:system-ui,sans-serif;color:#eef3ff">
+    <h1>JEE ASCENT needs JavaScript</h1>
+    <p>This platform runs entirely in your browser — the simulations, the adaptive engine and the
+       spaced-repetition scheduler are all client-side. Please enable JavaScript and reload.</p>
+  </div>
+</noscript>
+
+<div id="boot" style="display:grid;place-items:center;min-height:100vh;gap:16px;font-family:system-ui,sans-serif">
+  <div style="text-align:center">
+    <div style="width:56px;height:56px;margin:0 auto 14px;border-radius:16px;
+                background:linear-gradient(140deg,#4cc9f0,#b28dff);display:grid;place-items:center;
+                font-weight:900;color:#04121c;font-size:1.1rem">JA</div>
+    <div style="font-weight:800;letter-spacing:.04em">JEE ASCENT</div>
+    <div style="font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:#5f6d8e;margin-top:4px">
+      Aryabhata Protocol
+    </div>
+    <div style="margin-top:18px;width:22px;height:22px;border-radius:50%;
+                border:2.5px solid #243055;border-top-color:#4cc9f0;
+                animation:spin .7s linear infinite;margin-inline:auto"></div>
+  </div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+<script type="module">
+  import('./js/main.js')
+    .then(() => { document.getElementById('boot')?.remove(); })
+    .catch((err) => {
+      console.error(err);
+      var boot = document.getElementById('boot');
+      if (!boot) return;
+      boot.innerHTML =
+        '<div style="max-width:560px;padding:24px;color:#eef3ff;font-family:system-ui,sans-serif">' +
+        '<h2>Could not start</h2>' +
+        '<p style="color:#b9c5e2">The app failed to load its modules. If you opened this file directly ' +
+        'from disk, that is the cause: ES modules and the service worker both need a real HTTP origin.</p>' +
+        '<p style="color:#b9c5e2">Run <code style="background:#1a2440;padding:2px 6px;border-radius:4px">node server.js</code> ' +
+        'in the project folder and open <code style="background:#1a2440;padding:2px 6px;border-radius:4px">http://localhost:5173</code>.</p>' +
+        '<pre style="white-space:pre-wrap;color:#ff5d73;font-size:.8rem"></pre></div>';
+      boot.querySelector('pre').textContent = String(err && err.message || err);
+    });
+</script>
+
+</body>
+</html>

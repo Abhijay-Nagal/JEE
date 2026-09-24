@@ -1,0 +1,25 @@
+# Line endings are not cosmetic in this repository.
+#
+# tools/build-sw.js content-hashes the raw bytes of every file in public/ to
+# version the service-worker precache list. If a Windows checkout produced CRLF
+# and Linux CI produced LF, the two would compute different hashes and the
+# "precache is up to date" check would fail on every run. Pinning LF everywhere
+# keeps the hash reproducible across platforms.
+* text=auto eol=lf
+
+# Batch files are executed by cmd.exe, which wants CRLF. Nothing outside
+# public/ feeds the hash, so this is safe.
+*.bat text eol=crlf
+
+# Binaries: never convert, never diff as text.
+*.png binary
+*.jpg binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+
+# Generated artefacts. They belong in the repo (the README shows them), but
+# collapsing them in diffs keeps review readable.
+docs/screenshots/*.png linguist-generated=true
+docs/sample-print-pack.pdf linguist-generated=true
+public/precache.js linguist-generated=true

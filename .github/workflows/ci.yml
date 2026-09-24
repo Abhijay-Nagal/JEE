@@ -1,0 +1,38 @@
+name: CI
+
+# Deployment is handled by Vercel, which builds from this repository and runs
+# `npm run verify` as its build command - so a red suite blocks the deploy at
+# source. This workflow exists so pull requests and non-main branches get the
+# same signal without waiting on a deployment, and so the badge in the README
+# reflects the default branch.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          # No cache key: there is no package-lock.json, because there are no
+          # dependencies to lock. Nothing is installed.
+
+      - name: Syntax, content and engine checks
+        # check    - parses every JS file
+        # validate - duplicate ids, bad answer keys, KC typos, prereq cycles,
+        #            unsupported LaTeX, missing widget and animation files
+        # smoke    - ~5,500 checks: every LaTeX string renders, every answer key
+        #            re-grades, the six models behave, a full session replays
+        # sw:check - public/precache.js still matches the contents of public/
+        run: npm run verify

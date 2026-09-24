@@ -1,0 +1,321 @@
+/* ============================================================
+   JEE ASCENT - design tokens, reset, typography, math rendering
+   Dark is the default theme; light is a full first-class variant.
+   ============================================================ */
+
+:root {
+  /* --- Neutral ramp (dark theme values) --- */
+  --bg-0: #070b16;
+  --bg-1: #0c1222;
+  --bg-2: #121a2e;
+  --bg-3: #1a2440;
+  --bg-4: #243055;
+  --line: #24304f;
+  --line-soft: #1b243d;
+
+  --ink-1: #eef3ff;
+  --ink-2: #b9c5e2;
+  --ink-3: #8593b5;
+  --ink-4: #5f6d8e;
+
+  /* --- Brand --- */
+  --primary: #4cc9f0;
+  --primary-ink: #04202b;
+  --primary-dim: rgba(76, 201, 240, 0.14);
+  --accent: #ffb703;
+  --accent-ink: #2b1c00;
+
+  /* --- Semantic --- */
+  --ok: #3ddc97;
+  --ok-dim: rgba(61, 220, 151, 0.14);
+  --warn: #ffb703;
+  --warn-dim: rgba(255, 183, 3, 0.14);
+  --bad: #ff5d73;
+  --bad-dim: rgba(255, 93, 115, 0.14);
+  --info: #8b93ff;
+  --info-dim: rgba(139, 147, 255, 0.14);
+
+  /* --- Subject hues (used to tint whole sections) --- */
+  --physics: #4cc9f0;
+  --physics-2: #2b8ec4;
+  --chemistry: #3ddc97;
+  --chemistry-2: #1fa574;
+  --maths: #b28dff;
+  --maths-2: #7d5bd6;
+
+  /* --- GMH difficulty ladder --- */
+  --tier-g: #3ddc97;
+  --tier-m: #ffb703;
+  --tier-h: #ff5d73;
+
+  /* --- Chart palette -------------------------------------------------
+     Separate from the UI subject hues above: those are chrome, tuned for
+     large surfaces, and they fail the categorical lightness band and the
+     normal-vision separation floor when used as adjacent data marks.
+     These three are the validated categorical slots, in fixed order
+     (1 physics, 2 chemistry, 3 maths) and are never cycled or reassigned.
+     Dark values: OKLCH L 0.48-0.67, worst adjacent pair dE 19.4 deutan /
+     20.6 normal, all >= 3:1 on --bg-1. --------------------------------- */
+  --chart-1: #2f86dd;
+  --chart-2: #18a878;
+  --chart-3: #8f63e8;
+  --chart-grid: #1b243d;
+  --chart-ink: #8593b5;
+
+  /* Sequential ramp - one hue, anchored dark-to-light for a dark surface. */
+  --seq-0: #141d33;
+  --seq-1: #123a2e;
+  --seq-2: #14614a;
+  --seq-3: #168a68;
+  --seq-4: #18a878;
+
+  /* Status scale - reserved meaning, always shipped with a text label. */
+  --st-weak: #ff5d73;
+  --st-learning: #ffb703;
+  --st-strong: #4cc9f0;
+  --st-mastered: #3ddc97;
+
+  /* --- Geometry --- */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
+
+  --shadow-1: 0 1px 2px rgba(0,0,0,.4);
+  --shadow-2: 0 6px 20px rgba(0,0,0,.38);
+  --shadow-3: 0 18px 50px rgba(0,0,0,.48);
+  --glow: 0 0 0 1px rgba(76,201,240,.35), 0 0 28px rgba(76,201,240,.18);
+
+  --font-ui: "Segoe UI", Inter, system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
+  --font-mono: "Cascadia Mono", "JetBrains Mono", Consolas, "SF Mono", Menlo, monospace;
+
+  --rail-w: 248px;
+  --topbar-h: 60px;
+  --content-max: 1180px;
+  --read-max: 74ch;
+
+  --ease: cubic-bezier(.22,.61,.36,1);
+  --ease-out-back: cubic-bezier(.34,1.56,.64,1);
+  --t-fast: 120ms;
+  --t-base: 220ms;
+  --t-slow: 420ms;
+
+  --font-scale: 1;
+  color-scheme: dark;
+}
+
+/* ---- Light theme ---- */
+[data-theme="light"] {
+  --bg-0: #f4f6fb;
+  --bg-1: #ffffff;
+  --bg-2: #f7f9fe;
+  --bg-3: #eef2fa;
+  --bg-4: #e2e9f6;
+  --line: #d8e0ee;
+  --line-soft: #e8edf7;
+
+  --ink-1: #101728;
+  --ink-2: #3b4760;
+  --ink-3: #5f6d8a;
+  --ink-4: #8a96ae;
+
+  --primary: #0d7ea8;
+  --primary-ink: #ffffff;
+  --primary-dim: rgba(13, 126, 168, 0.12);
+  --accent: #b87500;
+  --accent-ink: #ffffff;
+
+  --ok: #12885c;
+  --ok-dim: rgba(18, 136, 92, 0.12);
+  --warn: #b87500;
+  --warn-dim: rgba(184, 117, 0, 0.12);
+  --bad: #cf2f47;
+  --bad-dim: rgba(207, 47, 71, 0.12);
+  --info: #4c52c9;
+  --info-dim: rgba(76, 82, 201, 0.12);
+
+  --physics: #0d7ea8;
+  --physics-2: #0a5f80;
+  --chemistry: #12885c;
+  --chemistry-2: #0c6444;
+  --maths: #6b45c6;
+  --maths-2: #523398;
+
+  --tier-g: #12885c;
+  --tier-m: #b87500;
+  --tier-h: #cf2f47;
+
+  /* Light mode is a selected palette, not a flip: re-stepped from the same
+     hues and re-validated against a white surface (worst adjacent pair
+     dE 22.6 protan / 23.5 normal, all >= 3:1). */
+  --chart-1: #1668c4;
+  --chart-2: #0f9b68;
+  --chart-3: #7a4fd0;
+  --chart-grid: #e8edf7;
+  --chart-ink: #5f6d8a;
+
+  --seq-0: #f0f3f9;
+  --seq-1: #d7f0e5;
+  --seq-2: #9adcc2;
+  --seq-3: #4cbc93;
+  --seq-4: #0f9b68;
+
+  --st-weak: #cf2f47;
+  --st-learning: #b87500;
+  --st-strong: #0d7ea8;
+  --st-mastered: #12885c;
+
+  --shadow-1: 0 1px 2px rgba(20,30,60,.08);
+  --shadow-2: 0 6px 20px rgba(20,30,60,.10);
+  --shadow-3: 0 18px 50px rgba(20,30,60,.16);
+  --glow: 0 0 0 1px rgba(13,126,168,.35), 0 0 22px rgba(13,126,168,.14);
+  color-scheme: light;
+}
+
+/* ---- High-contrast accessibility variant ---- */
+[data-contrast="high"] {
+  --ink-2: var(--ink-1);
+  --ink-3: var(--ink-1);
+  --line: var(--ink-3);
+}
+
+/* ============================ reset ============================ */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: calc(16px * var(--font-scale));
+  line-height: 1.6;
+  color: var(--ink-1);
+  background: var(--bg-0);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-wrap: break-word;
+}
+body::before {
+  /* Ambient observatory glow. Purely decorative, sits behind everything. */
+  content: "";
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(900px 500px at 12% -8%, rgba(76,201,240,.10), transparent 60%),
+    radial-gradient(800px 480px at 92% 4%, rgba(178,141,255,.09), transparent 62%),
+    radial-gradient(700px 420px at 50% 108%, rgba(61,220,151,.07), transparent 60%);
+}
+[data-theme="light"] body::before { opacity: .55; }
+
+h1, h2, h3, h4, h5 { margin: 0 0 var(--sp-3); line-height: 1.22; font-weight: 700; letter-spacing: -.015em; }
+h1 { font-size: 1.95rem; }
+h2 { font-size: 1.45rem; }
+h3 { font-size: 1.15rem; }
+h4 { font-size: 1rem; }
+p  { margin: 0 0 var(--sp-4); color: var(--ink-2); }
+a  { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+ul, ol { margin: 0 0 var(--sp-4); padding-left: 1.3em; color: var(--ink-2); }
+li { margin-bottom: var(--sp-2); }
+strong { color: var(--ink-1); font-weight: 650; }
+em { color: var(--ink-1); font-style: italic; }
+code, kbd, samp { font-family: var(--font-mono); font-size: .92em; }
+code {
+  background: var(--bg-3); border: 1px solid var(--line-soft);
+  padding: .08em .38em; border-radius: var(--r-xs); color: var(--ink-1);
+}
+hr { border: 0; border-top: 1px solid var(--line); margin: var(--sp-5) 0; }
+img, canvas, svg { max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+::selection { background: var(--primary); color: var(--primary-ink); }
+
+/* Thin, themed scrollbars */
+* { scrollbar-width: thin; scrollbar-color: var(--bg-4) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: var(--r-pill); border: 3px solid transparent; background-clip: content-box; }
+*::-webkit-scrollbar-thumb:hover { background: var(--ink-4); background-clip: content-box; }
+
+/* ============================ utilities ============================ */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.skip-link {
+  position: absolute; left: var(--sp-3); top: -60px; z-index: 999;
+  background: var(--primary); color: var(--primary-ink);
+  padding: var(--sp-2) var(--sp-4); border-radius: var(--r-sm);
+  transition: top var(--t-fast);
+}
+.skip-link:focus { top: var(--sp-3); }
+
+.muted { color: var(--ink-3); }
+.dim   { color: var(--ink-4); }
+.tiny  { font-size: .78rem; }
+.small { font-size: .875rem; }
+.mono  { font-family: var(--font-mono); }
+.center { text-align: center; }
+.nowrap { white-space: nowrap; }
+.stack > * + * { margin-top: var(--sp-4); }
+.stack-sm > * + * { margin-top: var(--sp-2); }
+.row { display: flex; align-items: center; gap: var(--sp-3); }
+.row-wrap { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; }
+.spread { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.grow { flex: 1 1 auto; min-width: 0; }
+.hidden { display: none !important; }
+
+/* ============================ math (mathlite.js) ============================ */
+.math {
+  font-family: var(--font-serif);
+  font-style: italic;
+  white-space: nowrap;
+  line-height: 1;
+  display: inline-block;
+  vertical-align: baseline;
+}
+.math .mop, .math .mnum, .math .mtext, .math .mfn { font-style: normal; }
+.math .mop { padding: 0 .18em; }
+.math .mpunct { padding-right: .16em; }
+.math .mtext { font-family: var(--font-ui); font-size: .92em; }
+.math .mfrac {
+  display: inline-flex; flex-direction: column; align-items: center;
+  vertical-align: -0.52em; margin: 0 .16em; text-align: center;
+}
+.math .mfrac > .num { padding: 0 .3em .1em; font-size: .94em; }
+.math .mfrac > .den { padding: .1em .3em 0; border-top: 1.2px solid currentColor; font-size: .94em; }
+.math .msup, .math .msub { font-size: .72em; display: inline-block; }
+.math .msup { vertical-align: .52em; }
+.math .msub { vertical-align: -.28em; }
+.math .msqrt { display: inline-flex; align-items: stretch; margin: 0 .1em; }
+.math .msqrt > .radical { font-size: 1.05em; transform: translateY(-.02em); font-style: normal; }
+.math .msqrt > .radicand { border-top: 1.2px solid currentColor; padding: .12em .22em 0 .14em; margin-top: .14em; }
+.math .mroot-index { font-size: .6em; vertical-align: .6em; margin-right: -.45em; font-style: normal; }
+.math .mvec { position: relative; display: inline-block; }
+.math .mvec::after {
+  content: "\2192"; position: absolute; left: 0; right: 0; top: -.78em;
+  font-size: .78em; text-align: center; font-style: normal;
+}
+.math .mbar { border-top: 1.2px solid currentColor; padding-top: .04em; display: inline-block; }
+.math .mhat { position: relative; display: inline-block; }
+.math .mhat::after {
+  content: "\005E"; position: absolute; left: 0; right: 0; top: -.62em;
+  font-size: .82em; text-align: center; font-style: normal;
+}
+.math .mbig { font-size: 1.5em; font-style: normal; vertical-align: -.22em; padding: 0 .06em; }
+.math .mlim { display: inline-flex; flex-direction: column; align-items: center; vertical-align: -.5em; }
+.math .mlim > .lim-sub { font-size: .66em; }
+.math .mstack { display: inline-flex; flex-direction: column; align-items: center; vertical-align: -.4em; line-height: 1.1; }
+.math .mstack > .over, .math .mstack > .under { font-size: .62em; }
+.math .mfence { font-style: normal; }
+.math-block {
+  display: block; text-align: center; white-space: normal;
+  margin: var(--sp-4) 0; font-size: 1.12rem; overflow-x: auto; padding: var(--sp-2) 0;
+}

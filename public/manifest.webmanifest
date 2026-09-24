@@ -1,0 +1,27 @@
+{
+  "name": "JEE ASCENT — The Aryabhata Protocol",
+  "short_name": "JEE ASCENT",
+  "description": "An offline-first, gamified, adaptive JEE preparation platform. Physics, Chemistry and Mathematics Chapters 1 and 2, with 40 interactive simulations, 22 concept animations and a full GMH question ladder.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#070b16",
+  "theme_color": "#070b16",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "./assets/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./assets/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Spaced Review", "short_name": "Review", "url": "./index.html#/review", "description": "Clear the review queue" },
+    { "name": "Adaptive Practice", "short_name": "Practice", "url": "./index.html#/practice", "description": "Mixed adaptive questions" },
+    { "name": "Mock Test", "short_name": "Mock", "url": "./index.html#/mock", "description": "Timed test with negative marking" },
+    { "name": "Progress", "short_name": "Progress", "url": "./index.html#/progress", "description": "Your analytics" }
+  ]
+}

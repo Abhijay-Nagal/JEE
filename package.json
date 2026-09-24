@@ -1,0 +1,35 @@
+{
+  "name": "jee-ascent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "JEE ASCENT - an offline-first, gamified, adaptive JEE preparation platform. Zero runtime dependencies.",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js --port 5173",
+    "icons": "node tools/make-icons.js",
+    "sw": "node tools/build-sw.js",
+    "sw:check": "node tools/build-sw.js --check",
+    "build": "node tools/make-icons.js && node tools/build-sw.js",
+    "check": "node --experimental-vm-modules tools/check-syntax.js",
+    "validate": "node tools/validate-content.js",
+    "smoke": "node tools/smoke-test.js",
+    "ui": "node tools/ui-test.mjs",
+    "test": "npm run check && npm run validate && npm run smoke",
+    "verify": "npm run test && npm run sw:check",
+    "test:all": "npm run check && npm run validate && npm run smoke && npm run ui"
+  },
+  "keywords": [
+    "jee",
+    "physics",
+    "chemistry",
+    "mathematics",
+    "pwa",
+    "offline-first",
+    "adaptive-learning",
+    "spaced-repetition",
+    "gamification"
+  ],
+  "license": "MIT"
+}
