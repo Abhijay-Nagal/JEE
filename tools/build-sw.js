@@ -41,8 +41,22 @@ const files = walk(PUBLIC)
   .filter((f) => !SKIP.has(path.relative(PUBLIC, f).replace(/\\/g, '/')))
   .sort();
 
+/**
+ * The version must identify the *content*, and it must come out the same on
+ * every machine. Hashing raw bytes fails that second requirement: a checkout
+ * with CRLF and one with LF hash differently, so a list generated on Windows
+ * looks stale to Linux CI and the build fails for no real reason.
+ * .gitattributes pins LF, but relying on it alone means one contributor with a
+ * different git config silently breaks the build - so normalise here too.
+ */
+const BINARY = new Set(['.png', '.woff2']);
 const hash = crypto.createHash('sha256');
-for (const f of files) hash.update(fs.readFileSync(f));
+for (const f of files) {
+  const bytes = fs.readFileSync(f);
+  hash.update(BINARY.has(path.extname(f).toLowerCase())
+    ? bytes
+    : Buffer.from(bytes.toString('latin1').replaceAll('\r\n', '\n'), 'latin1'));
+}
 const version = hash.digest('hex').slice(0, 10);
 
 const urls = files.map((f) => './' + path.relative(PUBLIC, f).replace(/\\/g, '/'));
